@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multiconstrucciones Río Santa S.A.C.</title>
+<!-- Bootstrap 5.3 (CDN): componentes y utilidades; el diseño propio está en styles.css -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen" style="display:none">
+  <div class="login-card">
+    <div class="login-logo">🏗️</div>
+    <div class="login-header"><h1>Multiconstrucciones</h1><p>Río Santa S.A.C. — Acceso del personal</p></div>
+    <form onsubmit="login(event)" autocomplete="off">
+      <div class="err" id="login-err"></div>
+      <div class="field" id="f-user"><span class="ico">👤</span><input type="text" id="username" placeholder=" " required oninput="limpiarErr()"><label for="username">Usuario / Correo</label></div>
+      <div class="field" id="f-pass"><span class="ico">🔒</span><input type="password" id="password" placeholder=" " required oninput="limpiarErr()"><label for="password">Contraseña</label><button type="button" class="eye" id="eye" onclick="verClave()" title="Mostrar u ocultar contraseña">👁️</button></div>
+      <button type="submit" class="btn-submit">Ingresar</button>
+    </form>
+    <div class="footer-links"><a onclick="abrir('forgotModal')">¿Olvidaste tu contraseña?</a><a onclick="cerrarLogin()">← Volver a la tienda</a></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:flex">
+  <aside class="side">
+    <h1>🏗️ Río Santa</h1>
+    <h3>Ventanas</h3>
+    <button id="bt-tienda" onclick="vista('tienda')">🛍️ Tienda</button>
+    <button id="bt-inv" onclick="vista('inv')" style="display:none">📦 Inventario y stock</button>
+    <button id="bt-ventas" onclick="vista('ventas')" style="display:none">🧾 Ventas realizadas</button>
+    <button id="bt-rep" onclick="vista('rep')" style="display:none">📊 Reportes</button>
+    <button id="bt-nos" onclick="vista('nos')">🏢 Nosotros y contacto</button>
+    <h3>Categorías</h3>
+    <div id="cats"></div>
+  </aside>
+
+  <main>
+    <header>
+      <input type="text" id="input-search" placeholder="¿Buscas cemento, fierro, tanques Rotoplas, clavos, tablas?" oninput="buscar(this.value)">
+      <div class="sp"></div>
+      <span class="loc">📍 Huaral, PE</span>
+      <span class="who" id="who" style="display:none"></span>
+      <button class="ingreso" id="btn-ingreso" onclick="abrirLogin()">🔐 Ingreso del personal</button>
+      <button class="salir" id="btn-salir" onclick="salir()" style="display:none">Salir</button>
+    </header>
+
+    <!-- VENTANA 1: TIENDA -->
+    <section id="v-tienda" class="wrap">
+      <div class="pack"><b>Gran Pack Remodelación</b><span>Inodoro + Lavatorio + Espejo — <em>S/ 450.00</em> <s style="color:#94a3b8;font-size:.75rem">S/ 520.00</s></span><button class="btn-submit" onclick="agregar(25)">Añadir Pack</button></div>
+      <h2 id="titulo">Catálogo completo</h2>
+      <div class="shop">
+        <div id="products-grid" class="grid"></div>
+        <div class="cart">
+          <h3>🛒 Tu Carrito</h3>
+          <ul id="cart-items"></ul>
+          <div class="aviso" id="aviso"></div>
+          <div class="sum">
+            <div class="fila"><span>Subtotal:</span><span id="subtotal">S/ 0.00</span></div>
+            <div class="fila" style="color:#16a34a"><span>Descuento Volumen:</span><span id="discount">S/ 0.00</span></div>
+            <div class="fila t"><span>Total:</span><span id="total">S/ 0.00</span></div>
+            <div class="fila" style="color:#64748b;font-size:.78rem"><span>Incluye IGV (18%):</span><span id="igv">S/ 0.00</span></div>
+          </div>
+          <div class="acts">
+            <button id="btn-process" class="btn-co" onclick="procesar()" disabled style="display:none">💳 Cobrar</button>
+            <a id="whatsapp-btn" href="#" target="_blank" class="btn-wa">Pedir por WhatsApp</a>
+            <button class="btn-clear" onclick="vaciar()">Vaciar Carrito</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VENTANA 2: INVENTARIO -->
+    <section id="v-inv" class="wrap" style="display:none">
+      <h2>📦 Inventario y stock</h2>
+      <p class="nota">Edita el stock de cada producto (usa las categorías de la izquierda para filtrar). <b>En carrito</b> y <b>Quedaría</b> te dicen si te conviene comprar con el stock que tienes. Los cambios se guardan en la base de datos.</p>
+      <div class="tbl-wrap table-responsive"><table>
+        <thead><tr><th>Producto</th><th>Subcategoría</th><th>Stock actual</th><th>En carrito</th><th>Quedaría</th><th>Estado</th></tr></thead>
+        <tbody id="inv-body"></tbody>
+      </table></div>
+      <button class="btn-reset" onclick="resetStock()">Restablecer stock inicial</button>
+    </section>
+
+    <!-- VENTANA 3: VENTAS -->
+    <section id="v-ventas" class="wrap" style="display:none">
+      <h2>🧾 Ventas realizadas</h2>
+      <div class="tbl-wrap table-responsive"><table>
+        <thead><tr><th>Comprobante</th><th>Fecha</th><th>Detalle</th><th>Cliente</th><th>Pago</th><th>Vendedor</th><th>Total</th></tr></thead>
+        <tbody id="ventas-body"></tbody>
+      </table></div>
+      <button class="btn-reset" onclick="borrarVentas()">Borrar historial</button>
+    </section>
+
+    <!-- VENTANA 4: REPORTES -->
+    <section id="v-rep" class="wrap" style="display:none">
+      <h2>📊 Reportes</h2>
+      <div id="rep-body"></div>
+    </section>
+
+    <!-- VENTANA 5: NOSOTROS -->
+    <section id="v-nos" class="wrap" style="display:none">
+      <h2>🏢 Nosotros y contacto</h2>
+      <div class="cols">
+        <div class="panel"><h3>Multiconstrucciones Río Santa S.A.C.</h3>
+          <p>Ferretería y materiales de construcción en Huaral. Todo para tu obra: cemento, fierro, ladrillos, tanques, tablas, sanitarios, iluminación y herramientas.</p></div>
+        <div class="panel"><h3>Atención</h3>
+          <p>📍 Huaral, Lima, Perú</p><p>🕒 Lunes a sábado, 8:00 a.m. – 6:00 p.m.</p><p>📞 954175106</p></div>
+        <div class="panel"><h3>Pedidos</h3>
+          <p>Arma tu carrito en la Tienda y envíalo por WhatsApp.</p>
+          <a class="btn-wa" style="display:block;margin-top:.6rem" href="https://wa.me/51954175106" target="_blank">Escribir por WhatsApp</a></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- MODALES -->
+<div id="forgotModal" class="modal"><div class="modal-content"><span class="close-btn" onclick="cerrar('forgotModal')">&times;</span>
+  <h3 style="margin-bottom:1rem">Recuperar Contraseña</h3>
+  <form onsubmit="recuperar(event)" autocomplete="off">
+    <div class="err" id="fg-err"></div><div class="okmsg" id="fg-ok"></div>
+    <div class="form-group"><label>Usuario o correo registrado</label><input type="text" id="fg-user" placeholder="Ingresa tu usuario o correo" required></div>
+    <div class="form-group"><label>Nueva contraseña</label><input type="password" id="fg-pass" placeholder="Ingresa una contraseña segura" required oninput="medidor(this.value,'fg')">
+      <div class="meter" id="fg-meter"><span></span><span></span><span></span></div><div class="mtxt" id="fg-txt">Ingresa una contraseña</div>
+      <div class="mhint">Usa 8+ caracteres, mayúsculas, minúsculas, números y símbolos.</div></div>
+    <div class="form-group"><label>Repite la nueva contraseña</label><input type="password" id="fg-pass2" placeholder="Repite la contraseña" required></div>
+    <button type="submit" class="btn-submit">Cambiar contraseña</button></form></div></div>
+
+<!-- MODAL DE COBRO: COMPROBANTE, CLIENTE Y MÉTODO DE PAGO -->
+<div id="cobroModal" class="modal">
+  <div class="modal-content" style="max-width:430px">
+    <span class="close-btn" onclick="cerrar('cobroModal')">&times;</span>
+    <h3 style="margin-bottom:.8rem">💳 Cobrar venta</h3>
+    <div class="cb-total"><span>Monto a pagar: </span><strong id="cobro-total">S/ 0.00</strong></div>
+
+    <label class="cb-label">Comprobante</label>
+    <div class="cb-opts" id="opts-tipo">
+      <button type="button" class="cb-opt on" data-v="boleta" onclick="selTipo('boleta')">Boleta</button>
+      <button type="button" class="cb-opt" data-v="factura" onclick="selTipo('factura')">Factura</button>
+    </div>
+    <div id="cli-boleta">
+      <input class="cb-in" id="cli-dni" placeholder="DNI del cliente (opcional)" maxlength="8" inputmode="numeric">
+      <input class="cb-in" id="cli-nom-b" placeholder="Nombre del cliente (opcional)" maxlength="150">
+    </div>
+    <div id="cli-factura" style="display:none">
+      <input class="cb-in" id="cli-ruc" placeholder="RUC del cliente (11 dígitos)" maxlength="11" inputmode="numeric">
+      <input class="cb-in" id="cli-razon" placeholder="Razón social" maxlength="150">
+      <input class="cb-in" id="cli-dir" placeholder="Dirección (opcional)" maxlength="200">
+    </div>
+
+    <label class="cb-label">Método de pago</label>
+    <div class="cb-opts" id="opts-metodo">
+      <button type="button" class="cb-opt on" data-v="efectivo" onclick="selMetodo('efectivo')">💵 Efectivo</button>
+      <button type="button" class="cb-opt" data-v="yape" onclick="selMetodo('yape')">📲 Yape</button>
+      <button type="button" class="cb-opt" data-v="plin" onclick="selMetodo('plin')">📲 Plin</button>
+      <button type="button" class="cb-opt" data-v="tarjeta" onclick="selMetodo('tarjeta')">💳 Tarjeta</button>
+    </div>
+
+    <div id="pago-efectivo">
+      <input class="cb-in" id="cobro-recibido" type="number" min="0" step="0.10" placeholder="Monto recibido (opcional)" oninput="calcVuelto()">
+      <div class="cb-vuelto">Vuelto: <b id="cobro-vuelto">—</b></div>
+    </div>
+    <div id="pago-yape" class="cb-qr" style="display:none">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=YAPE-MULTICONSTRUCCIONES-RIO-SANTA-SAC-954175106" alt="QR Yape">
+      <p><b>Yape</b> · Multiconstrucciones Río Santa S.A.C.</p>
+      <p>Celular: 954175106</p>
+    </div>
+    <div id="pago-plin" class="cb-qr" style="display:none">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PLIN-MULTICONSTRUCCIONES-RIO-SANTA-SAC-954175106" alt="QR Plin">
+      <p><b>Plin</b> · Multiconstrucciones Río Santa S.A.C.</p>
+      <p>Celular: 954175106</p>
+    </div>
+    <div id="pago-tarjeta" class="cb-qr" style="display:none">
+      <p>Cobra el monto en el POS (Visa / Mastercard) y luego confirma la venta.</p>
+    </div>
+
+    <div class="err" id="cobro-err"></div>
+    <button onclick="confirmarCobro()" class="btn-submit" style="margin-top:.6rem">✅ Confirmar y Emitir Venta</button>
+  </div>
+</div>
+
+<!-- MODAL RECIBO Y PDF -->
+<div id="receiptModal" class="modal"><div class="modal-content" style="max-width:480px">
+  <div class="okmsg show" style="margin-bottom:1rem">✅ ¡Pago realizado con éxito! Aquí está tu comprobante.</div>
+  <div class="ticket">
+    <div class="ticket-header"><h4>MULTICONSTRUCCIONES RÍO SANTA S.A.C.</h4><p>RUC: 20601234567</p><p>Huaral, Perú</p><p id="ticket-fecha"></p><p><b id="ticket-tipo">COMPROBANTE ELECTRÓNICO</b></p><p id="ticket-n"></p><p id="ticket-cli"></p></div>
+    <table><thead><tr><th>Cant. / Descripción</th><th>P.Unit</th><th>Importe</th></tr></thead><tbody id="ticket-items"></tbody></table>
+    <div style="font-size:.78rem;border-top:1px dashed #cbd5e1;padding-top:5px">
+      <div class="fila"><span>Subtotal:</span><span id="t-sub"></span></div>
+      <div class="fila"><span>Descuento:</span><span id="t-desc"></span></div>
+      <div class="fila"><span>Op. gravada (sin IGV):</span><span id="t-base"></span></div>
+      <div class="fila"><span>IGV (18%):</span><span id="t-igv"></span></div>
+      <div class="fila t"><span>TOTAL A PAGAR:</span><span id="t-tot"></span></div>
+      <div class="fila"><span>Pago:</span><span id="t-pago"></span></div>
+      <div class="fila" id="t-rec-row" style="display:none"><span>Recibido / Vuelto:</span><span id="t-rec"></span></div>
+    </div>
+    <p style="text-align:center;margin-top:1rem;font-size:.72rem;color:#64748b">¡Gracias por su compra en Multiconstrucciones Río Santa!</p>
+  </div>
+  <a id="pdf-link" class="btn-pdf" href="#" download="comprobante.pdf">⬇ Descargar comprobante en PDF</a>
+  <button onclick="cerrar('receiptModal')" class="btn-submit" style="margin-top:.6rem">Aceptar y Nueva Venta</button></div></div>
+
+
+<!-- ========================================================= -->
+    <!-- MÓDULO DE ACCESIBILIDAD UNIVERSAL (BLINDADO Y SIN ERRORES)-->
+    <!-- ========================================================= -->
+
+    <!-- Barra Flotante de Accesibilidad -->
+    <div id="accessibility-bar">
+        <button type="button" class="acc-btn" title="Activar zoom en toda la página" onclick="toggleZoomGeneral()" id="btn-zoom-control" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-offset="0,22">
+            🔍
+        </button>
+        <button type="button" class="acc-btn" title="Cambiar modo de colores (Daltonismo)" onclick="toggleDaltonismo()" id="btn-daltonismo-control" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-offset="0,22">
+            👁️‍🗨️
+        </button>
+        <button type="button" class="acc-btn" title="Activar lectura por voz al apuntar" onclick="toggleModoVozGlobal()" id="btn-audio-control" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-offset="0,22">
+            🔊
+        </button>
+    </div>
+
+    <!-- ========================cambio================================= -->
+
+     <!-- ===== INICIO: TEMA FERRETERÍA FUTURISTA + ANIMACIÓN (pegar justo antes de </body>) =====-->
+
+
+<script>
+(function(){
+  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var W=window.innerWidth,H=window.innerHeight,BW=150,BH=60,cx=W/2,cy=H/2;
+  var ov=document.createElement('div');ov.id='intro';
+  var wall=document.createElement('div');wall.className='wall';
+  var cols=Math.ceil(W/BW)+2,rows=Math.ceil(H/BH)+1,i,j,html='';
+  for(j=0;j<rows;j++){for(i=-1;i<cols;i++){
+    var x=i*BW+(j%2?-BW/2:0),y=j*BH,bx=x+BW/2-cx,by=y+BH/2-cy,d=Math.sqrt(bx*bx+by*by);
+    var hue=10+Math.random()*10,lig=28+Math.random()*10;
+    html+='<div class="b" style="left:'+x+'px;top:'+y+'px;width:'+BW+'px;height:'+BH+'px;background:hsl('+hue+',55%,'+lig+'%);'
+      +'--x:'+(bx*1.1+(Math.random()-.5)*160).toFixed(0)+'px;--y:'+(by*1.1+H*.35+Math.random()*200).toFixed(0)+'px;'
+      +'--r:'+((Math.random()-.5)*160).toFixed(0)+'deg;--d:'+(d/2400).toFixed(2)+'s"></div>';
+  }}
+  wall.innerHTML=html;ov.appendChild(wall);
+  ov.insertAdjacentHTML('beforeend',
+    '<svg class="crack" viewBox="0 0 420 420">'
+    +'<path class="c1" d="M210 210 L180 150 L195 100 M210 210 L260 170 L300 175 M210 210 L225 275 L205 330"/>'
+    +'<path class="c2" d="M180 150 L120 135 L80 90 M260 170 L290 120 L335 85 M225 275 L290 300 L330 350 M210 210 L140 235 L95 220"/>'
+    +'<path class="c3" d="M195 100 L215 50 M120 135 L70 160 L40 150 M300 175 L360 190 L395 170 M205 330 L160 375 M140 235 L110 290 L70 305 M290 300 L320 245"/>'
+    +'</svg><div class="flash"></div><div class="hammer">'+'<svg viewBox="0 0 260 270" width="260" height="270" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="hs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9dee6"/><stop offset=".5" stop-color="#8e98a6"/><stop offset="1" stop-color="#4b5460"/></linearGradient><linearGradient id="hw" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b9772f"/><stop offset="1" stop-color="#7a4a1a"/></linearGradient></defs><line x1="236" y1="244" x2="96" y2="70" stroke="url(#hw)" stroke-width="20" stroke-linecap="round"/><g transform="translate(96 70) rotate(-38.8)"><rect x="-62" y="-27" width="124" height="54" rx="7" fill="url(#hs)" stroke="#2b323b" stroke-width="3"/><rect x="-62" y="-27" width="22" height="54" rx="6" fill="#FFC400" opacity=".9"/><rect x="-50" y="-22" width="100" height="9" rx="4" fill="#fff" opacity=".35"/></g></svg>'+'</div>'
+    +'<div class="txt">Multiconstrucciones Río Santa</div><button type="button" class="skip">Saltar ▸</button>');
+  document.body.appendChild(ov);
+  var done=false;
+  function finish(){if(done)return;done=true;
+    var l=document.getElementById('login-screen');if(l)l.classList.add('intro-pop');
+    ov.classList.add('out');setTimeout(function(){if(ov.parentNode)ov.parentNode.removeChild(ov)},700);}
+  var t1=setTimeout(function(){ov.classList.add('boom')},1800);
+  var t2=setTimeout(finish,2900);
+  ov.querySelector('.skip').addEventListener('click',function(){clearTimeout(t1);clearTimeout(t2);ov.classList.add('boom');finish()});
+})();
+</script>
+<!-- ===== FIN ===== -->
+
+<!-- LÓGICA DE LA PÁGINA (todo el JavaScript está en app.js) -->
+<!-- ANUNCIO EMERGENTE (discreto, se muestra una vez por visita) -->
+<div id="anuncio" class="anuncio oculto" role="status" aria-live="polite">
+  <button class="anuncio-x" onclick="cerrarAnuncio()" aria-label="Cerrar anuncio">&times;</button>
+  <h4>🔨 Multiconstrucciones Río Santa</h4>
+  <p>Todo para tu obra, en Huaral. Atendemos de lunes a sábado, de 8:00 a.m. a 6:00 p.m.</p>
+  <p class="anuncio-promo">Lleva 5 unidades o más y ahorra 5% (10% desde 10 unidades).</p>
+  <button class="anuncio-btn" onclick="verOfertas()">🔥 Ver ofertas</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>

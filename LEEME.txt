@@ -1,0 +1,25 @@
+MULTICONSTRUCCIONES RÍO SANTA S.A.C. - Instrucciones
+
+1) Abrir XAMPP y darle "Start" a Apache y a MySQL.
+2) Copiar la carpeta "ferreteria_rio_santa" dentro de C:\xampp\htdocs\
+3) Entrar a http://localhost/phpmyadmin -> pestaña "Importar" -> elegir schema.sql -> Importar.
+   (Crea la base de datos, los productos y los usuarios. Si ya existía una versión anterior,
+   primero eliminar la base "ferreteria_rio_santa" y luego importar.)
+4) Abrir http://localhost/ferreteria_rio_santa/
+
+LA TIENDA ES PÚBLICA: cualquier persona ve el catálogo sin iniciar sesión.
+El botón "Ingreso del personal" (arriba a la derecha) es solo para trabajadores:
+
+  Administrador ->  usuario: admin      contraseña: admin123
+     (tienda, cobro, inventario, ventas realizadas y reportes)
+  Vendedor      ->  usuario: vendedor   contraseña: vendedor123
+     (catálogo, consulta de stock y registro de ventas con boleta)
+
+COBRO (solo personal): al presionar "Cobrar" se elige
+  - Comprobante: Boleta (DNI/nombre opcionales) o Factura (RUC y razón social obligatorios)
+  - Método de pago: Efectivo (con vuelto), Yape (QR), Plin (QR) o Tarjeta
+  La boleta/factura se descarga en PDF. Es un comprobante simulado para fines académicos
+  (no se envía a SUNAT).
+
+BOOTSTRAP: la página usa Bootstrap 5.3 desde internet (CDN jsDelivr), por lo que necesita conexión a internet
+  al abrirla. Sin internet se sigue viendo igual; solo dejan de funcionar los globos de ayuda (tooltips) de la barra de accesibilidad.
